@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Jeu de Cartes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.8em;
+            margin: 30px 0 15px 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            border-bottom: 3px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 16px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-icon {
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.95em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 80px;
+            padding: 11px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95em;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: scale(1.02);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-success {
+            background: #52c41a;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #40a010;
+        }
+
+        .result {
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            border-radius: 6px;
+            padding: 14px;
+            margin-top: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            white-space: pre-wrap;
+            word-break: break-all;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result.error {
+            background: #ffe0e0;
+            border-left-color: #ff6b6b;
+            color: #c00;
+        }
+
+        .result.success {
+            background: #e0ffe0;
+            border-left-color: #52c41a;
+            color: #165c00;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #667eea;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>🎴 API Jeu de Cartes</h1>
+        <p>Créez, mélangez et gérez des jeux de cartes à jouer</p>
+    </header>
+
+    <!-- CREATE DECK SECTION -->
+    <div class="section-title">📋 Créer des Decks</div>
+    <div class="grid">
+        <!-- Create New Deck (not shuffled) -->
+        <div class="card">
+            <h2><span class="card-icon">✨</span> Créer un Jeu</h2>
+            <div class="form-group">
+                <label>Nombre de jeux</label>
+                <input type="number" id="deckCount" min="1" value="1">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="jokersEnabled">
+                <label for="jokersEnabled" style="margin: 0;">Inclure les jokers</label>
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="createDeck()">Créer</button>
+            </div>
+            <div class="loading" id="loading1"><span class="spinner"></span> Création...</div>
+            <div class="result" id="result1"></div>
+        </div>
+
+        <!-- Create New Deck (shuffled) -->
+        <div class="card">
+            <h2><span class="card-icon">🔀</span> Créer Mélangé</h2>
+            <div class="form-group">
+                <label>Nombre de jeux</label>
+                <input type="number" id="deckCountShuffle" min="1" value="1">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="jokersEnabledShuffle">
+                <label for="jokersEnabledShuffle" style="margin: 0;">Inclure les jokers</label>
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="createShuffledDeck()">Créer Mélangé</button>
+            </div>
+            <div class="loading" id="loading1b"><span class="spinner"></span> Création...</div>
+            <div class="result" id="result1b"></div>
+        </div>
+
+        <!-- Create Partial Deck -->
+        <div class="card">
+            <h2><span class="card-icon">🎲</span> Jeu Partiel</h2>
+            <div class="form-group">
+                <label>Codes des Cartes (virgules)</label>
+                <input type="text" id="customCards" placeholder="ex: AS,2S,KS,AD,2D,KD">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="shuffleCustom" checked>
+                <label for="shuffleCustom" style="margin: 0;">Mélanger</label>
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="createCustomDeck()">Créer</button>
+            </div>
+            <div class="loading" id="loading1c"><span class="spinner"></span> Création...</div>
+            <div class="result" id="result1c"></div>
+        </div>
+    </div>
+
+    <!-- DRAW & SHUFFLE SECTION -->
+    <div class="section-title">🎯 Piocher et Mélanger</div>
+    <div class="grid">
+        <!-- Draw Cards -->
+        <div class="card">
+            <h2><span class="card-icon">🎯</span> Piocher des Cartes</h2>
+            <div class="form-group">
+                <label>ID du Jeu</label>
+                <input type="text" id="drawDeckId" placeholder="Entrez l'ID du jeu">
+            </div>
+            <div class="form-group">
+                <label>Nombre de cartes</label>
+                <input type="number" id="drawCount" min="1" value="1">
+            </div>
+            <button class="btn-primary" onclick="drawCards()" style="width: 100%;">Piocher</button>
+            <div class="loading" id="loading2"><span class="spinner"></span> Pioche...</div>
+            <div class="result" id="result2"></div>
+        </div>
+
+        <!-- Shuffle Deck -->
+        <div class="card">
+            <h2><span class="card-icon">🔄</span> Mélanger le Jeu</h2>
+            <div class="form-group">
+                <label>ID du Jeu</label>
+                <input type="text" id="shuffleDeckId" placeholder="Entrez l'ID du jeu">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="remainingOnly">
+                <label for="remainingOnly" style="margin: 0;">Seulement les cartes restantes</label>
+            </div>
+            <button class="btn-primary" onclick="shuffleDeck()" style="width: 100%;">Mélanger</button>
+            <div class="loading" id="loading3"><span class="spinner"></span> Mélange...</div>
+            <div class="result" id="result3"></div>
+        </div>
+
+        <!-- Quick Draw from New Deck -->
+        <div class="card">
+            <h2><span class="card-icon">⚡</span> Jeu & Piocher</h2>
+            <div class="form-group">
+                <label>Nombre de cartes à piocher</label>
+                <input type="number" id="quickDrawCount" min="1" value="5">
+            </div>
+            <p style="font-size: 0.85em; color: #666; margin: 10px 0;">Crée un nouveau jeu mélangé et pige directement</p>
+            <button class="btn-success" onclick="newDeckDraw()" style="width: 100%;">Créer & Piocher</button>
+            <div class="loading" id="loadingQuick"><span class="spinner"></span> Création...</div>
+            <div class="result" id="resultQuick"></div>
+        </div>
+    </div>
+
+    <!-- PILE MANAGEMENT SECTION -->
+    <div class="section-title">📚 Gestion des Piles</div>
+    <div class="grid">
+        <!-- Add to Pile -->
+        <div class="card">
+            <h2><span class="card-icon">➕</span> Ajouter à une Pile</h2>
+            <div class="form-group">
+                <label>ID du Jeu</label>
+                <input type="text" id="addDeckId" placeholder="Entrez l'ID du jeu">
+            </div>
+            <div class="form-group">
+                <label>Nom de la Pile</label>
+                <input type="text" id="addPileName" placeholder="ex: discard, player1, hand">
+            </div>
+            <div class="form-group">
+                <label>Codes des Cartes (virgules)</label>
+                <input type="text" id="cardCodes" placeholder="ex: 2H,3D,KS">
+            </div>
+            <button class="btn-primary" onclick="addToPile()" style="width: 100%;">Ajouter</button>
+            <div class="loading" id="loading5"><span class="spinner"></span> Ajout...</div>
+            <div class="result" id="result5"></div>
+        </div>
+
+        <!-- List Piles -->
+        <div class="card">
+            <h2><span class="card-icon">📋</span> Lister les Piles</h2>
+            <div class="form-group">
+                <label>ID du Jeu</label>
+                <input type="text" id="listDeckId" placeholder="Entrez l'ID du jeu">
+            </div>
+            <div class="form-group">
+                <label>Pile Spécifique</label>
+                <input type="text" id="listPileName" placeholder="Laissez vide pour tout lister">
+            </div>
+            <button class="btn-secondary" onclick="listPiles()" style="width: 100%;">Lister</button>
+            <div class="loading" id="loading4"><span class="spinner"></span> Chargement...</div>
+            <div class="result" id="result4"></div>
+        </div>
+
+        <!-- Shuffle Pile -->
+        <div class="card">
+            <h2><span class="card-icon">🔄</span> Mélanger une Pile</h2>
+            <div class="form-group">
+                <label>ID du Jeu</label>
+                <input type="text" id="shufflePileDeckId" placeholder="Entrez l'ID du jeu">
+            </div>
+            <div class="form-group">
+                <label>Nom de la Pile</label>
+                <input type="text" id="shufflePileName" placeholder="ex: discard">
+            </div>
+            <button class="btn-secondary" onclick="shufflePile()" style="width: 100%;">Mélanger</button>
+            <div class="loading" id="loadingShuffle"><span class="spinner"></span> Mélange...</div>
+            <div class="result" id="resultShuffle"></div>
+        </div>
+    </div>
+
+    <!-- PILE DRAW SECTION -->
+    <div class="section-title">🎪 Piocher d'une Pile</div>
+    <div class="grid">
+        <!-- Draw from Pile (Top) -->
+        <div class="card">
+            <h2><span class="card-icon">📤</span> Piocher (Haut)</h2>
+            <div class="form-group">
+                <label>ID du Jeu</label>
+                <input type="text" id="pileDrawDeckId1" placeholder="Entrez l'ID du jeu">
+            </div>
+            <div class="form-group">
+                <label>Nom de la Pile</label>
+                <input type="text" id="pileDrawName1" placeholder="ex: discard">
+            </div>
+            <div class="form-group">
+                <label>Nombre de cartes</label>
+                <input type="number" id="pileDrawCount1" min="1" value="1">
+            </div>
+            <button class="btn-primary" onclick="drawFromPileTop()" style="width: 100%;">Piocher (Top)</button>
+            <div class="loading" id="loading6a"><span class="spinner"></span> Pioche...</div>
+            <div class="result" id="result6a"></div>
+        </div>
+
+        <!-- Draw from Pile (Bottom) -->
+        <div class="card">
+            <h2><span class="card-icon">📥</span> Piocher (Bas)</h2>
+            <div class="form-group">
+                <label>ID du Jeu</label>
+                <input type="text" id="pileDrawDeckId2" placeholder="Entrez l'ID du jeu">
+            </div>
+            <div class="form-group">
+                <label>Nom de la Pile</label>
+                <input type="text" id="pileDrawName2" placeholder="ex: discard">
+            </div>
+            <div class="form-group">
+                <label>Nombre de cartes</label>
+                <input type="number" id="pileDrawCount2" min="1" value="1">
+            </div>
+            <button class="btn-primary" onclick="drawFromPileBottom()" style="width: 100%;">Piocher (Bottom)</button>
+            <div class="loading" id="loading6b"><span class="spinner"></span> Pioche...</div>
+            <div class="result" id="result6b"></div>
+        </div>
+
+        <!-- Draw from Pile (Random) -->
+        <div class="card">
+            <h2><span class="card-icon">🎲</span> Piocher (Aléatoire)</h2>
+            <div class="form-group">
+                <label>ID du Jeu</label>
+                <input type="text" id="pileDrawDeckId3" placeholder="Entrez l'ID du jeu">
+            </div>
+            <div class="form-group">
+                <label>Nom de la Pile</label>
+                <input type="text" id="pileDrawName3" placeholder="ex: discard">
+            </div>
+            <div class="form-group">
+                <label>Nombre de cartes</label>
+                <input type="number" id="pileDrawCount3" min="1" value="1">
+            </div>
+            <button class="btn-primary" onclick="drawFromPileRandom()" style="width: 100%;">Piocher (Aléatoire)</button>
+            <div class="loading" id="loading6c"><span class="spinner"></span> Pioche...</div>
+            <div class="result" id="result6c"></div>
+        </div>
+
+        <!-- Draw Specific Card from Pile -->
+        <div class="card">
+            <h2><span class="card-icon">🎯</span> Piocher Spécifique</h2>
+            <div class="form-group">
+                <label>ID du Jeu</label>
+                <input type="text" id="pileDrawDeckId4" placeholder="Entrez l'ID du jeu">
+            </div>
+            <div class="form-group">
+                <label>Nom de la Pile</label>
+                <input type="text" id="pileDrawName4" placeholder="ex: discard">
+            </div>
+            <div class="form-group">
+                <label>Codes des Cartes (virgules)</label>
+                <input type="text" id="pileDrawCards" placeholder="ex: AS,2H,KD">
+            </div>
+            <button class="btn-primary" onclick="drawFromPileSpecific()" style="width: 100%;">Piocher</button>
+            <div class="loading" id="loading6d"><span class="spinner"></span> Pioche...</div>
+            <div class="result" id="result6d"></div>
+        </div>
+    </div>
+
+    <!-- RETURN SECTION -->
+    <div class="section-title">↩️ Retourner des Cartes</div>
+    <div class="grid">
+        <!-- Return Cards to Deck -->
+        <div class="card">
+            <h2><span class="card-icon">↩️</span> Retourner au Jeu</h2>
+            <div class="form-group">
+                <label>ID du Jeu</label>
+                <input type="text" id="returnDeckId" placeholder="Entrez l'ID du jeu">
+            </div>
+            <div class="form-group">
+                <label>Codes des Cartes (virgules)</label>
+                <input type="text" id="returnCardCodes" placeholder="ex: 2H,3D,KS - laissez vide pour tout">
+            </div>
+            <p style="font-size: 0.85em; color: #666; margin: 10px 0;">Retourne les cartes pigées au jeu</p>
+            <button class="btn-secondary" onclick="returnCardsToDeck()" style="width: 100%;">Retourner</button>
+            <div class="loading" id="loading7"><span class="spinner"></span> Retour...</div>
+            <div class="result" id="result7"></div>
+        </div>
+
+        <!-- Return Cards from Pile -->
+        <div class="card">
+            <h2><span class="card-icon">↩️</span> Retourner de Pile</h2>
+            <div class="form-group">
+                <label>ID du Jeu</label>
+                <input type="text" id="returnPileDeckId" placeholder="Entrez l'ID du jeu">
+            </div>
+            <div class="form-group">
+                <label>Nom de la Pile</label>
+                <input type="text" id="returnPileName" placeholder="ex: discard">
+            </div>
+            <div class="form-group">
+                <label>Codes des Cartes (virgules)</label>
+                <input type="text" id="returnPileCardCodes" placeholder="ex: 2H,3D,KS - laissez vide pour tout">
+            </div>
+            <button class="btn-secondary" onclick="returnCardsFromPile()" style="width: 100%;">Retourner</button>
+            <div class="loading" id="loading8"><span class="spinner"></span> Retour...</div>
+            <div class="result" id="result8"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const API_BASE = '/api';
+
+    function showLoading(id, show = true) {
+        document.getElementById(id).style.display = show ? 'block' : 'none';
+    }
+
+    function showResult(id, data, isError = false) {
+        const resultEl = document.getElementById(id);
+        resultEl.textContent = JSON.stringify(data, null, 2);
+        resultEl.classList.remove('show', 'error', 'success');
+        resultEl.classList.add('show', isError ? 'error' : 'success');
+    }
+
+    async function apiCall(endpoint, loadingId, resultId) {
+        showLoading(loadingId);
+        try {
+            const response = await fetch(`${API_BASE}${endpoint}`);
+            const data = await response.json();
+            showResult(resultId, data, !data.success);
+            return data;
+        } catch (error) {
+            showResult(resultId, { error: error.message }, true);
+        } finally {
+            showLoading(loadingId, false);
+        }
+    }
+
+    // CREATE DECK
+    function createDeck() {
+        const deckCount = document.getElementById('deckCount').value;
+        const jokersEnabled = document.getElementById('jokersEnabled').checked;
+        const params = new URLSearchParams({
+            deck_count: deckCount,
+            jokers_enabled: jokersEnabled
+        });
+        apiCall(`/deck/new?${params}`, 'loading1', 'result1');
+    }
+
+    function createShuffledDeck() {
+        const deckCount = document.getElementById('deckCountShuffle').value;
+        const jokersEnabled = document.getElementById('jokersEnabledShuffle').checked;
+        const params = new URLSearchParams({
+            deck_count: deckCount,
+            jokers_enabled: jokersEnabled
+        });
+        apiCall(`/deck/new/shuffle?${params}`, 'loading1b', 'result1b');
+    }
+
+    function createCustomDeck() {
+        const cards = document.getElementById('customCards').value;
+        const shuffle = document.getElementById('shuffleCustom').checked;
+        if (!cards) {
+            showResult('result1c', { error: 'Please enter card codes' }, true);
+            return;
+        }
+        const endpoint = shuffle ? `/deck/new/shuffle?cards=${cards}` : `/deck/new?cards=${cards}`;
+        apiCall(endpoint, 'loading1c', 'result1c');
+    }
+
+    // DRAW & SHUFFLE
+    function drawCards() {
+        const deckId = document.getElementById('drawDeckId').value;
+        const count = document.getElementById('drawCount').value;
+        if (!deckId) {
+            showResult('result2', { error: 'Please enter a deck ID' }, true);
+            return;
+        }
+        apiCall(`/deck/${deckId}/draw?count=${count}`, 'loading2', 'result2');
+    }
+
+    function shuffleDeck() {
+        const deckId = document.getElementById('shuffleDeckId').value;
+        const remainingOnly = document.getElementById('remainingOnly').checked;
+        if (!deckId) {
+            showResult('result3', { error: 'Please enter a deck ID' }, true);
+            return;
+        }
+        apiCall(`/deck/${deckId}/shuffle?remaining=${remainingOnly}`, 'loading3', 'result3');
+    }
+
+    function newDeckDraw() {
+        const count = document.getElementById('quickDrawCount').value;
+        apiCall(`/deck/new/draw?count=${count}`, 'loadingQuick', 'resultQuick');
+    }
+
+    // PILE MANAGEMENT
+    function addToPile() {
+        const deckId = document.getElementById('addDeckId').value;
+        const pileName = document.getElementById('addPileName').value;
+        const cardCodes = document.getElementById('cardCodes').value;
+        if (!deckId || !pileName || !cardCodes) {
+            showResult('result5', { error: 'Please fill all fields' }, true);
+            return;
+        }
+        apiCall(`/deck/${deckId}/pile/${pileName}/add?cards=${cardCodes}`, 'loading5', 'result5');
+    }
+
+    function listPiles() {
+        const deckId = document.getElementById('listDeckId').value;
+        const pileName = document.getElementById('listPileName').value;
+        if (!deckId) {
+            showResult('result4', { error: 'Please enter a deck ID' }, true);
+            return;
+        }
+        const pile = pileName ? `/${pileName}` : '';
+        apiCall(`/deck/${deckId}/pile${pile}/list`, 'loading4', 'result4');
+    }
+
+    function shufflePile() {
+        const deckId = document.getElementById('shufflePileDeckId').value;
+        const pileName = document.getElementById('shufflePileName').value;
+        if (!deckId || !pileName) {
+            showResult('resultShuffle', { error: 'Please enter deck ID and pile name' }, true);
+            return;
+        }
+        apiCall(`/deck/${deckId}/pile/${pileName}/shuffle`, 'loadingShuffle', 'resultShuffle');
+    }
+
+    // DRAW FROM PILE
+    function drawFromPileTop() {
+        const deckId = document.getElementById('pileDrawDeckId1').value;
+        const pileName = document.getElementById('pileDrawName1').value;
+        const count = document.getElementById('pileDrawCount1').value;
+        if (!deckId || !pileName) {
+            showResult('result6a', { error: 'Please enter deck ID and pile name' }, true);
+            return;
+        }
+        apiCall(`/deck/${deckId}/pile/${pileName}/draw?count=${count}`, 'loading6a', 'result6a');
+    }
+
+    function drawFromPileBottom() {
+        const deckId = document.getElementById('pileDrawDeckId2').value;
+        const pileName = document.getElementById('pileDrawName2').value;
+        const count = document.getElementById('pileDrawCount2').value;
+        if (!deckId || !pileName) {
+            showResult('result6b', { error: 'Please enter deck ID and pile name' }, true);
+            return;
+        }
+        apiCall(`/deck/${deckId}/pile/${pileName}/draw/bottom?count=${count}`, 'loading6b', 'result6b');
+    }
+
+    function drawFromPileRandom() {
+        const deckId = document.getElementById('pileDrawDeckId3').value;
+        const pileName = document.getElementById('pileDrawName3').value;
+        const count = document.getElementById('pileDrawCount3').value;
+        if (!deckId || !pileName) {
+            showResult('result6c', { error: 'Please enter deck ID and pile name' }, true);
+            return;
+        }
+        apiCall(`/deck/${deckId}/pile/${pileName}/draw/random?count=${count}`, 'loading6c', 'result6c');
+    }
+
+    function drawFromPileSpecific() {
+        const deckId = document.getElementById('pileDrawDeckId4').value;
+        const pileName = document.getElementById('pileDrawName4').value;
+        const cards = document.getElementById('pileDrawCards').value;
+        if (!deckId || !pileName || !cards) {
+            showResult('result6d', { error: 'Please fill all fields' }, true);
+            return;
+        }
+        apiCall(`/deck/${deckId}/pile/${pileName}/draw?cards=${cards}`, 'loading6d', 'result6d');
+    }
+
+    // RETURN CARDS
+    function returnCardsToDeck() {
+        const deckId = document.getElementById('returnDeckId').value;
+        const cardCodes = document.getElementById('returnCardCodes').value;
+        if (!deckId) {
+            showResult('result7', { error: 'Please enter a deck ID' }, true);
+            return;
+        }
+        const endpoint = cardCodes ? `/deck/${deckId}/return?cards=${cardCodes}` : `/deck/${deckId}/return`;
+        apiCall(endpoint, 'loading7', 'result7');
+    }
+
+    function returnCardsFromPile() {
+        const deckId = document.getElementById('returnPileDeckId').value;
+        const pileName = document.getElementById('returnPileName').value;
+        const cardCodes = document.getElementById('returnPileCardCodes').value;
+        if (!deckId || !pileName) {
+            showResult('result8', { error: 'Please enter deck ID and pile name' }, true);
+            return;
+        }
+        const endpoint = cardCodes ? `/deck/${deckId}/pile/${pileName}/return?cards=${cardCodes}` : `/deck/${deckId}/pile/${pileName}/return`;
+        apiCall(endpoint, 'loading8', 'result8');
+    }
+</script>
+</body>
+</html>
